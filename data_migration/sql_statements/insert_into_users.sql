@@ -1,0 +1,3 @@
+INSERT INTO users(name)
+VALUES (%s)
+ON CONFLICT (name) DO NOTHING;

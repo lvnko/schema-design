@@ -1,0 +1,17 @@
+# dependencies
+*/node_modules
+
+# debug
+*/logs
+
+# misc
+.DS_Store
+.pem
+
+# local env files
+.env*.local
+
+# python cache
+__pycache__/
+*.pyc
+*/*.pyc
