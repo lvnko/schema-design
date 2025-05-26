@@ -42,57 +42,122 @@
 
 在資料庫設計中，實體（Entity）代表一個真實世界的物件或概念，關於它儲存了資料。例子包括人、地點、事件或概念。實體具有描述其屬性的特性。在關聯式資料庫中，實體通常表示為一個表格，其屬性表示為該表格中的欄位。實體之間存在關係，表明它們是如何連接的。這些關係對於設計一個結構良好的資料庫架構至關重要。
 
-### 1.4. Fact & Dimension
+### 1.5. 事實與維度 (Fact & Dimension)
 
-In data warehousing, a fact table consists of the measurements, metrics or facts of a business process.
+在資料倉儲中，事實表包含業務流程的測量、指標或事實。
 
-It is located at the center of a star schema or a snowflake schema surrounded by dimension tables.
+它位於星型模式或雪花型模式的中心，周圍環繞著維度表。
 
-#### 1.4.1. Star Schema
+#### 1.5.1. 星型模式 (Star Schema)
 
-The star schema consists of one or more fact tables referencing any number of dimension tables.
+星型模式由一個或多個事實表組成，這些事實表引用任意數量的維度表。
 
-It is the approach most widely used to develop data warehouses and dimensional data marts.
+它是開發資料倉儲和維度資料超市最廣泛使用的方法。
 
-#### 1.4.2. Snowflake Schema
+#### 1.5.2. 雪花型模式 (Snowflake Schema)
 
-The snowflake schema is similar to the star schema.
+雪花型模式與星型模式相似。
 
-However, in the snowflake schema, dimensions are normalized into multiple related tables, whereas the star schema dimensions are denormalized with each dimension represented by a single table...
+然而，在雪花型模式中，維度被正規化為多個相關表，而星型模式的維度則被反正規化，每個維度由一個單獨的表表示...
 
-#### 1.4.3. Pros & Cons
+#### 1.5.3. 優缺點 (Pros & Cons)
 
 <table>
   <thead>
     <tr>
         <th>種類</th>
-        <th>Pros</th>
-        <th colspan=2>Cons</th>
+        <th>優點 (Pros)</th>
+        <th colspan=2>缺點 (Cons)</th>
     </tr>
   </thead>
   <tbody>
     <tr>
-        <td rowspan=2>Star Schema</td>
-        <td>Simple Query</td>
-        <td rowspan=2>Data Integrity Issue</td>
-        <td rowspan=4>Fundemental not support to <b>Many-to-Many</b> data structure</td>
+        <td rowspan=2>星型模式 (Star Schema)</td>
+        <td>查詢簡單 (Simple Query)</td>
+        <td rowspan=2>資料完整性問題 (Data Integrity Issue)</td>
+        <td rowspan=4>基本不支援<b>多對多</b>資料結構 (Fundamental not support to <b>Many-to-Many</b> data structure)</td>
     </tr>
     <tr>
-      <td>Fast Aggregation</td>
+      <td>聚合快速 (Fast Aggregation)</td>
     </tr>
     <tr>
-      <td rowspan=3>Snowflake Schema</td>
-      <td rowspan=3>High Data Integrity</td>
-      <td>Complex Query</td>
+      <td rowspan=3>雪花型模式 (Snowflake Schema)</td>
+      <td rowspan=3>高資料完整性 (High Data Integrity)</td>
+      <td>查詢複雜 (Complex Query)</td>
     </tr>
     <tr>
-      <td>Slow Aggregation</td>
+      <td>聚合緩慢 (Slow Aggregation)</td>
     </tr>
   </tbody>
 </table>
 
 ## 2. 實作：資料庫架構優化
 
+### 2.1. 資料遷移工具 (Data Migration Tools)
+
+本專案使用 `TableMigrator` 和 `RecycleLogger` 兩個工具類別來協助資料遷移過程。
+
+#### 2.1.1. TableMigrator
+
+`TableMigrator` 類別用於處理從來源到目標表的批次資料遷移。它支援分批處理、資料轉換和驗證。
+
+**主要功能:**
+
+*   **初始化 (`__init__`):** 接受資料庫連線配置、批次大小和總限制作為參數。
+*   **遷移表格 (`migrate_table`):** 執行資料遷移。接受來源查詢、插入查詢、來源參數、驗證函數和轉換函數。它會分批從來源資料庫讀取資料，對每行資料進行可選的驗證和轉換，然後將處理後的資料插入到目標資料庫。
+
+**使用範例 (詳見 `data_migration/main.py`):**
+
+在 `data_migration/main.py` 中，`TableMigrator` 被用於遷移 `topics`, `posts`, `comments`, 和 `votes` 等表格。以下是一個遷移 `topics` 的簡化範例：
+
+```python
+migrator = TableMigrator(conn_config=config["postgres"])
+
+def validate_func(row):
+    # 驗證邏輯
+    return True
+
+def transform_func(row):
+    # 轉換邏輯
+    return (row["topic"], row["user_id"])
+
+total_migrated = migrator.migrate_table(
+    source_query=select_sql,
+    insert_query=insert_sql,
+    transform_func=transform_func,
+    validate_func=validate_func
+)
+```
+
+#### 2.1.2. RecycleLogger
+
+`RecycleLogger` 類別用於記錄在資料遷移過程中因各種原因（如資料不符合新架構要求）而無法遷移的資料。這些記錄可以幫助後續的資料清理或分析。
+
+**主要功能:**
+
+*   **初始化 (`__init__`):** 接受記錄檔的路徑作為參數。
+*   **記錄 (`log`):** 記錄無法遷移的資料的詳細資訊，包括目標表、值、來源、是否可回收以及缺失的原因。
+
+**使用範例 (詳見 `data_migration/main.py`):**
+
+在 `data_migration/main.py` 中，`RecycleLogger` 被用於記錄在遷移 `posts`, `comments`, 和 `votes` 時遇到的無效或缺失資料。以下是一個記錄無效 `post` 的簡化範例：
+
+```python
+recycle_logger = RecycleLogger(f"{dir_path}/logs/recycle.csv")
+
+def validate_func(row):
+    if row["title"] is None:
+        recycle_logger.log(
+            recycle_to="posts",
+            value=id,
+            came_from="bad_posts.id",
+            can_be_recycle=False,
+            missing='title'
+        )
+        return False
+    # 其他驗證邏輯
+    return True
+```
 
 - Porgram Implementation (九) — 教程裡面出錯的原因是因為在用 bad_comments 裡的 post_id 到舊 post table (bad_posts) 裡提取出來的 title 有一些是超過 100 個 characters 的，這不符合新 post table, posts 中 title 的規格，因此而找不到對應的 post_id。
 
