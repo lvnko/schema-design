@@ -165,3 +165,6 @@ def validate_func(row):
 # 如何把需要用的檔案搬運到 container 裡面
 docker cp <local_file> <container_name>:<container_path>
 ```
+
+## 4. 有用資源
+- 一篇關於 Psycopg2 Server Side Cursor Itersize 用法的討論 [[連結](https://stackoverflow.com/questions/63623336/how-does-psycopg2-server-side-cursor-operate-when-itersize-is-less-than-data-siz)]
