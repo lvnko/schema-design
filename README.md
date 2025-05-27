@@ -159,13 +159,9 @@ def validate_func(row):
     return True
 ```
 
-### 2.2. 實作總結
-
-# 2.2.1
-- Porgram Implementation (九) — 教程裡面出錯的原因是因為在用 bad_comments 裡的 post_id 到舊 post table (bad_posts) 裡提取出來的 title 有一些是超過 100 個 characters 的，這不符合新 post table, posts 中 title 的規格，因此而找不到對應的 post_id。
-
 ## 3. 指令
 
 ```shell
+# 如何把需要用的檔案搬運到 container 裡面
 docker cp <local_file> <container_name>:<container_path>
 ```
