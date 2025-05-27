@@ -103,7 +103,7 @@
 
 **主要功能:**
 
-*   **初始化 (`__init__`):** 接受資料庫連線配置、批次大小和總限制作為參數。
+*   **初始化 (`__init__`):** 接受資料庫連線配置、批次大小、查找資料總筆數限制、與是否開啟測試模式作為參數。
 *   **遷移表格 (`migrate_table`):** 執行資料遷移。接受來源查詢、插入查詢、來源參數、驗證函數和轉換函數。它會分批從來源資料庫讀取資料，對每行資料進行可選的驗證和轉換，然後將處理後的資料插入到目標資料庫。
 
 **使用範例 (詳見 `data_migration/main.py`):**
@@ -159,6 +159,9 @@ def validate_func(row):
     return True
 ```
 
+### 2.2. 實作總結
+
+# 2.2.1
 - Porgram Implementation (九) — 教程裡面出錯的原因是因為在用 bad_comments 裡的 post_id 到舊 post table (bad_posts) 裡提取出來的 title 有一些是超過 100 個 characters 的，這不符合新 post table, posts 中 title 的規格，因此而找不到對應的 post_id。
 
 ## 3. 指令

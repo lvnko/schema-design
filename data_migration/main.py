@@ -91,6 +91,7 @@ def migrate_topics():
     """
     Migrate all topics from old tables to topics tables.
     """
+    # ˋ這裡我把先前的 Migrate 方式 comment 掉，改用 TableMigrator Class 來做資料遷移。
     # SELECT_USER_ID = get_sql('select_user_id')
     # limit = 10000
 
